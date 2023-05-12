@@ -1,7 +1,10 @@
 import os
+import asyncio
 import discord
 from discord.ext import commands
 import youtube_dl
+#import yt_dlp as youtube_dl
+import pytube
 from dotenv import load_dotenv  #use dotenv to load TOKEN from .env-file
 
 load_dotenv()
@@ -66,14 +69,27 @@ async def play(ctx, url):
             await ctx.voice_client.move_to(voice_channel)
             vc = ctx.voice_client
             
-        """player = await voice_channel.create_ytdl_player(url)
-        player.start()"""
+        """ydl_opts = {
+            'format': 'bestaudio/best',
+            'extractaudio': True,
+            'audioformat': 'mp3',
+            'outtmpl': '%(id)s',
+            'noplaylist': True,
+            'verbose': True,
+        }
 
-        ydl_opts = {'format': 'bestaudio', 'noplaylist': True}
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            url = info['formats'][0]['url']
-            ctx.voice_client.play(discord.FFmpegPCMAudio(url), after=lambda e: print(f'Player error: {e}') if e else None)
+            audio_url = info['url']
+            ctx.voice_client.play(discord.FFmpegPCMAudio(audio_url), after=lambda e: print(f'Player error: {e}') if e else None)"""
+        
+        video = pytube.YouTube(url)     #gets the video from url
+        audio_stream = video.streams.filter(only_audio=True).first()    #gets audio of video
+        file_path = await asyncio.to_thread(audio_stream.download)      
+
+        # Play the audio through the voice client using FFmpeg.
+        ctx.voice_client.play(discord.FFmpegPCMAudio(file_path), after=lambda e: print(f"Error: {e}") if e else None)   #play audio through voice client using ffmpeg
+        await ctx.send(f"Now playing: {video.title}")
 
         
     else:
