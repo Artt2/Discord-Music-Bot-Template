@@ -16,3 +16,5 @@ Install the following packages with pip:
     pytube
 
 Download and install FFmpeg: https://phoenixnap.com/kb/ffmpeg-windows 
+
+## Other
